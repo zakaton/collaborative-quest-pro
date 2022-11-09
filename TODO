@@ -1,0 +1,3 @@
+hand-tracking-controls
+  position/rotation/scale offset
+  grab/release objects (pause physics)

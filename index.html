@@ -1,0 +1,139 @@
+<html>
+  <head>
+    <title>Hello, WebVR!</title>
+    <meta charset="utf-8" />
+
+    <!-- https://croquet.studio/sdk/docs/index.html -->
+    <script src="https://unpkg.com/@croquet/croquet@0.4.0"></script>
+
+    <!-- https://aframe.io/docs/1.2.0/introduction/ -->
+    <!-- <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script> -->
+
+    <script src="./script/aframe.min.js"></script>
+
+    <!-- https://github.com/mrturck/aframe-joystick -->
+    <script src="https://cdn.rawgit.com/mrturck/aframe-joystick/master/joystick.min.js"></script>
+
+    <!-- https://github.com/gftruj/aframe-hand-tracking-controls-extras -->
+    <script src="https://gftruj.github.io/hand.tracking.controls.extras/dist/aframe-hand-tracking-controls-extras.js"></script>
+
+    <script src="./script/hand-tracking-controls-proxy.js"></script>
+
+    <!-- https://github.com/schteppe/cannon.js -->
+    <!-- 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <script src="./script/cannon.serialize.js"></script>
+    -->
+
+    <!-- https://croquet.studio/sdk/docs/global.html#Constants -->
+    <script src="./script/constants.js"></script>
+
+    <!-- Here we register the croquet system/component immediately before the scene loads -->
+    <script src="./script/system.js"></script>
+    <script src="./script/component.js"></script>
+
+    <!-- Modules are loaded after the document (and therefore A-Frame scene) loads  -->
+    <script src="./script/index.js" type="module"></script>
+  </head>
+
+  <body>
+    <a-scene croquet>
+      <template id="userTemplate">
+        <a-entity class="user">
+          <a-sphere
+            class="right eye"
+            color="white"
+            scale="0.018 0.018 0.018"
+            position="0.040 0.040 -0.09"
+          >
+            <a-sphere
+              color="black"
+              scale="0.5 0.5 0.5"
+              position="0 0 -0.8"
+            ></a-sphere>
+          </a-sphere>
+          <a-sphere
+            class="left eye"
+            color="white"
+            scale="0.018 0.018 0.018"
+            position="-0.040 0.040 -0.09"
+          >
+            <a-sphere
+              color="black"
+              scale="0.5 0.5 0.5"
+              position="0 0 -0.8"
+            ></a-sphere>
+          </a-sphere>
+          <a-box class="head" scale="0.18 0.18 0.18"></a-box>
+        </a-entity>
+      </template>
+
+      <a-entity id="cameraPosition">
+        <a-entity id="cameraRotation"
+          ><a-entity id="cameraScale"
+            ><a-camera position="0 1 0" id="camera"></a-camera>
+            <a-entity
+              id="leftHandTrackingControls"
+              hand-tracking-controls="hand: left;"
+              hand-tracking-extras
+            ></a-entity>
+            <a-entity
+              id="rightHandTrackingControls"
+              hand-tracking-controls="hand: right;"
+              hand-tracking-extras
+            ></a-entity></a-entity
+        ></a-entity>
+      </a-entity>
+
+      <a-entity
+        croquet="name: light"
+        light="color: #FFF; intensity: 0.6; castShadow: true"
+        position="-0.5 1 1"
+      ></a-entity>
+      <a-entity
+        croquet="name: ambientLight"
+        light="color: #BBB; type: ambient"
+      ></a-entity>
+
+      <a-text
+        croquet="name: text"
+        value="Croquet"
+        color="black"
+        align="center"
+        scale="20 20 20"
+        position="0 6 -6"
+      ></a-text>
+
+      <a-cylinder
+        croquet="name: cylinder; physics: true; mass: 1;"
+        color="blue"
+        position="2 5 -3"
+        rotation="30 30 0"
+        height="1"
+        radius="0.5"
+      ></a-cylinder>
+      <a-sphere
+        croquet="name: sphere; physics: true; mass: 1;"
+        color="red"
+        position="0 2 -3"
+        radius="0.5"
+      ></a-sphere>
+      <a-box
+        croquet="name: box; physics: true; mass: 1;"
+        color="yellow"
+        position="-2 3 -3"
+        rotation="40 30 10"
+      ></a-box>
+      <a-plane
+        croquet="name: plane; physics: true; mass: 0;"
+        color="limegreen"
+        scale="100 100 100"
+        rotation="-90 0 0"
+      ></a-plane>
+      <a-sky visible="false" croquet="name: sky;" color="powderblue"></a-sky>
+    </a-scene>
+  </body>
+
+  <script src="./script/joystick.js"></script>
+  <script src="./script/randomizeLocation.js"></script>
+</html>

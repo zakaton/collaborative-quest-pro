@@ -1,3 +1,2 @@
 hand-tracking-controls
-  position/rotation/scale offset
-  grab/release objects (pause physics)
+  grab/release objects (pause physics when grabbing)

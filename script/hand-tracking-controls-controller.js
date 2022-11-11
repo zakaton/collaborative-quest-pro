@@ -2,9 +2,9 @@
 
 AFRAME.registerSystem("hand-tracking-controls-controller", {
   schema: {
-    targetEntities: { type: "string", default: "[croquet]" },
+    targetEntities: { type: "string", default: "[croquet][data-grabbable]" },
     handEntities: { type: "selectorAll", default: "[hand-tracking-controls]" },
-    distanceThreshold: { type: "number", default: 0.3 },
+    distanceThreshold: { type: "number", default: 0.01 },
   },
 
   init: function () {
@@ -67,13 +67,18 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
     if (!this.grabbedEntities.has(entityToGrab)) {
       grabbedEntityConfig = {
         entity: entityToGrab,
+        physics: entityToGrab.components.croquet?.data?.physics,
+        mass: entityToGrab.components.croquet?.data?.mass,
         hands: [handTrackingComponent],
         shouldUpdatePosition: false,
         shouldUpdateQuaternion: false,
         shouldUpdateScale: false,
         position: new THREE.Vector3(),
         quaternion: new THREE.Quaternion(),
+        rotation: new THREE.Euler(0, 0, 0, "YXZ"),
+        rotationVector: new THREE.Vector3(),
         scale: entityToGrab.object3D.scale.x,
+        scaleVector: new THREE.Vector3(),
         isRelativeToCamera: false,
         component: this,
         //camera: this.cameraEntity,
@@ -172,6 +177,11 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
       grabbedEntityConfig.hands.push(handTrackingComponent);
     }
 
+    if (grabbedEntityConfig.physics) {
+      entityToGrab.setAttribute("croquet", { physics: false });
+    }
+    // entityToGrab.setAttribute("croquet", { mass: 0 });
+
     if (this.cameraMountedEntities.has(entityToGrab)) {
       grabbedEntityConfig.isRelativeToCamera = true;
       this.cameraMountedEntities.set(entityToGrab, grabbedEntityConfig);
@@ -188,7 +198,7 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         this.grabbedEntities.delete(entityToGrab);
 
         grabbedEntityConfig.isRelativeToCamera =
-          handTrackingComponent.side == "left";
+          false && handTrackingComponent.side == "left";
         if (grabbedEntityConfig.isRelativeToCamera) {
           grabbedEntityConfig.initialCameraPosition.copy(
             this.cameraEntity.object3D.position
@@ -214,6 +224,12 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         } else {
           this.cameraMountedEntities.delete(entityToGrab);
         }
+
+        if (grabbedEntityConfig.physics) {
+          entityToGrab.setAttribute("croquet", {
+            physics: true,
+          });
+        }
       }
     };
     onPinchEnded = onPinchEnded.bind(this);
@@ -238,16 +254,36 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
 
     this.grabbedEntities.forEach((grabbedEntityConfig, grabbedEntity) => {
       if (grabbedEntityConfig.shouldUpdatePosition) {
-        grabbedEntity.object3D.position.copy(grabbedEntityConfig.position);
-        delete grabbedEntityConfig.shouldUpdatePosition;
+        // grabbedEntity.object3D.position.copy(grabbedEntityConfig.position);
+        // grabbedEntity.setAttribute("position", grabbedEntityConfig.position);
+        grabbedEntity.updateComponent("position", grabbedEntityConfig.position);
+        grabbedEntityConfig.shouldUpdatePosition = false;
       }
       if (grabbedEntityConfig.shouldUpdateQuaternion) {
-        grabbedEntity.object3D.quaternion.copy(grabbedEntityConfig.quaternion);
-        delete grabbedEntityConfig.shouldUpdateQuaternion;
+        // grabbedEntity.object3D.quaternion.copy(grabbedEntityConfig.quaternion);
+        grabbedEntityConfig.rotation.setFromQuaternion(
+          grabbedEntityConfig.quaternion
+        );
+        grabbedEntityConfig.rotationVector.setFromEuler(
+          grabbedEntityConfig.rotation
+        );
+        grabbedEntityConfig.rotationVector.multiplyScalar(180 / Math.PI);
+        //grabbedEntity.setAttribute("rotation", grabbedEntityConfig.rotation);
+        // grabbedEntity.setAttribute("rotation", rotationString);
+        if (!isNaN(grabbedEntityConfig.rotationVector.length())) {
+          grabbedEntity.updateComponent(
+            "rotation",
+            grabbedEntityConfig.rotationVector
+          );
+        }
+        grabbedEntityConfig.shouldUpdateQuaternion = false;
       }
       if (grabbedEntityConfig.shouldUpdateScale) {
-        grabbedEntity.object3D.scale.setScalar(grabbedEntityConfig.scale);
-        delete grabbedEntityConfig.shouldUpdateScale;
+        // grabbedEntity.object3D.scale.setScalar(grabbedEntityConfig.scale);
+        // grabbedEntity.setAttribute("scale", grabbedEntityConfig.scale);
+        grabbedEntityConfig.scaleVector.setScalar(grabbedEntityConfig.scale);
+        grabbedEntity.updateComponent("scale", grabbedEntityConfig.scaleVector);
+        grabbedEntityConfig.shouldUpdateScale = false;
       }
     });
 
@@ -271,12 +307,32 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         );
 
         if (!isNaN(grabbedEntityConfig.position.length())) {
-          grabbedEntity.object3D.position.copy(grabbedEntityConfig.position);
+          // grabbedEntity.setAttribute("position", grabbedEntityConfig.position);
+          grabbedEntity.updateComponent(
+            "position",
+            grabbedEntityConfig.position
+          );
+          // grabbedEntity.object3D.position.copy(grabbedEntityConfig.position);
         }
         if (!isNaN(grabbedEntityConfig.quaternion.length())) {
-          grabbedEntity.object3D.quaternion.copy(
+          grabbedEntityConfig.rotation.setFromQuaternion(
             grabbedEntityConfig.quaternion
           );
+          grabbedEntityConfig.rotation.x = THREE.MathUtils.radToDeg(
+            grabbedEntityConfig.rotation.x
+          );
+          grabbedEntityConfig.rotation.y = THREE.MathUtils.radToDeg(
+            grabbedEntityConfig.rotation.y
+          );
+          grabbedEntityConfig.rotation.z = THREE.MathUtils.radToDeg(
+            grabbedEntityConfig.rotation.z
+          );
+          grabbedEntity.updateComponent(
+            "rotation",
+            grabbedEntityConfig.rotation
+          );
+          // grabbedEntity.setAttribute("rotation", grabbedEntityConfig.rotation);
+          // grabbedEntity.object3D.quaternion.copy(grabbedEntityConfig.quaternion);
         }
       }
     });
@@ -288,6 +344,8 @@ AFRAME.registerComponent("hand-tracking-controls-controller", {
   dependencies: ["hand-tracking-controls"],
 
   init: function () {
+    this.box = new THREE.Box3();
+
     this.handTrackingControls = this.el.components["hand-tracking-controls"];
     this.side = this.handTrackingControls.data.hand;
 
@@ -303,11 +361,17 @@ AFRAME.registerComponent("hand-tracking-controls-controller", {
 
       const { position } = event.detail;
 
+      // FILL - grab threshold is based on entity type/dimensions
+      // use THREE.Box3, expand by object3D, and check point distance from object
+      // get closest distance from boinding box
       let closestEntity;
       let closestEntityDistance = this.system.data.distanceThreshold;
+      // this.box.makeEmpty();
       this.system.targetEntities.forEach((entity) => {
-        const distanceToEntity = position.distanceTo(entity.object3D.position);
-        //console.log("distance", distanceToEntity, entity, closestEntityDistance);
+        this.box.setFromObject(entity.object3D);
+
+        // const distanceToEntity = position.distanceTo(entity.object3D.position);
+        const distanceToEntity = this.box.distanceToPoint(position);
         if (distanceToEntity < closestEntityDistance) {
           closestEntityDistance = distanceToEntity;
           closestEntity = entity;

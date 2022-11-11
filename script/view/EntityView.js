@@ -77,7 +77,7 @@ class EntityView extends Croquet.View {
       this.addEventListener(
         this.entity,
         "loaded",
-        event => {
+        (event) => {
           this.log("Entity loaded", this.entity);
           this.updateComponents();
         },
@@ -89,7 +89,7 @@ class EntityView extends Croquet.View {
 
   log(string, ...etc) {
     if (!Q.LOGGING.EntityView) return;
-    
+
     console.groupCollapsed(`[EntityView-${this.model.id}] ${string}`, ...etc);
     console.trace(); // hidden in collapsed group
     console.groupEnd();
@@ -152,7 +152,9 @@ class EntityView extends Croquet.View {
     return this.model.lastTimePhysicsBodyWasSet;
   }
   get hasPhysicsBeenUpdated() {
-    return this.lastTimePhysicsBodyWasSet === this.lastTimePhysicsBodyWasUpdated;
+    return (
+      this.lastTimePhysicsBodyWasSet === this.lastTimePhysicsBodyWasUpdated
+    );
   }
 
   // Helper for adding/removing eventlisteners to entities that automatically get removed when detaching from the session
@@ -190,8 +192,11 @@ class EntityView extends Croquet.View {
   getEntityByName(name) {
     return Array.from(
       document.querySelectorAll("a-scene[croquet] [croquet]")
-    ).find(entity => {
-      return entity.getAttribute("croquet") && (entity.getAttribute("croquet").name === name);
+    ).find((entity) => {
+      return (
+        entity.getAttribute("croquet") &&
+        entity.getAttribute("croquet").name === name
+      );
     });
   }
 
@@ -237,16 +242,15 @@ class EntityView extends Croquet.View {
     if (this.entity && this.entity.hasLoaded) {
       // we'll uncomment this because it's really annoying
       //this.log("Updating Entity Components");
-      componentsToUpdate.forEach(componentName => {
+      componentsToUpdate.forEach((componentName) => {
         // checking if the entity component has been initialized
         if (
           componentName in this.entity.components &&
           this.entity.components[componentName].initialized
         ) {
           // get difference between local entity component and model component
-          const entityComponentData = this.getEntityComponentData(
-            componentName
-          );
+          const entityComponentData =
+            this.getEntityComponentData(componentName);
 
           const componentDifference = AFRAME.utils.diff(
             this.model.components[componentName],
@@ -260,7 +264,7 @@ class EntityView extends Croquet.View {
           // check if there are any differences between the entity and model
           if (Object.keys(componentDifference).length) {
             // we also comment this out because it's annoying
-            if (!this.isPhysicsEnabled) {
+            if (false) {
               this.log(
                 `About to set "${componentName}" component with "${attributeValue}"`
               );
@@ -317,9 +321,8 @@ class EntityView extends Croquet.View {
             this.entity.components[componentName].isPositionRotationScale
           ) // skip position/rotation/scale if physics is enabled
         ) {
-          const entityComponentData = this.getEntityComponentData(
-            componentName
-          );
+          const entityComponentData =
+            this.getEntityComponentData(componentName);
 
           let componentDifference = entityComponentData;
 
@@ -334,10 +337,13 @@ class EntityView extends Croquet.View {
           // add to componentDifferences if this component has at least 1 difference
           if (Object.keys(componentDifference).length) {
             componentDifferences[componentName] = componentDifference;
-            if (this.entity.components[componentName].isPositionRotationScale || componentName === "croquet") {
+            if (
+              this.entity.components[componentName].isPositionRotationScale ||
+              componentName === "croquet"
+            ) {
               this.entity.components[componentName].flushToDOM();
             }
-            
+
             // undefined values, e.g. {x: undefined} don't get sent to the model via this.publish (it'll just receive {}) so we'll replace them with null
             for (const propertyName in componentDifferences[componentName]) {
               if (
@@ -357,7 +363,7 @@ class EntityView extends Croquet.View {
         );
         this.publish(this.model.id, "set-components", {
           componentDifferences,
-          userViewId: this.viewId
+          userViewId: this.viewId,
         });
       }
     }
@@ -372,6 +378,13 @@ class EntityView extends Croquet.View {
     }
 
     this.updatePhysicsComponents();
+  }
+
+  setComponents(componentDifferences) {
+    this.publish(this.model.id, "set-components", {
+      userViewId: "",
+      componentDifferences,
+    });
   }
 
   detach(removeEntity) {

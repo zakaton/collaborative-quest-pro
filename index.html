@@ -120,9 +120,11 @@
       <a-box
         croquet="name: test; physics: true; mass: 1;"
         color="purple"
-        scale="0.1 0.1 0.1"
         position="0 1 -0.5"
+        scale="0.5 0.5 0.5"
+        rotation="0 0 0"
         shadow
+        data-grabbable
       ></a-box>
 
       <a-cylinder
@@ -154,6 +156,7 @@
         scale="100 100 100"
         rotation="-90 0 0"
         shadow="receive: true; cast: false;"
+        hide-on-enter-ar
       ></a-plane>
       <a-sky visible="false" croquet="name: sky;" color="powderblue"></a-sky>
     </a-scene>

@@ -1,7 +1,7 @@
 /* global Croquet, THREE, Q */
 
 import * as CANNON from "../cannon/CANNON.js";
-window.CANNON = CANNON
+window.CANNON = CANNON;
 class PhysicsModel extends Croquet.Model {
   init() {
     super.init();
@@ -22,7 +22,7 @@ class PhysicsModel extends Croquet.Model {
 
     this.was = this.now();
 
-    //this.future(Q.STEP_MS).step();
+    // this.future(Q.STEP_MS).step();
 
     this.log("Finished Physics Constructor");
   }
@@ -78,7 +78,7 @@ class PhysicsModel extends Croquet.Model {
     // http://schteppe.github.io/cannon.js/docs/classes/World.html#method_step
     this.world.step(delta / 1000.0);
 
-    this.world.bodies.forEach(physicsBody => {
+    this.world.bodies.forEach((physicsBody) => {
       const entityModel = this.getEntityModelByName(physicsBody.name);
       if (entityModel) {
         entityModel.onPhysicsBodyUpdate();
@@ -87,7 +87,7 @@ class PhysicsModel extends Croquet.Model {
 
     this.future(Q.STEP_MS).step();
   }
-  
+
   destroy() {
     super.destroy();
     this.world.destroy();

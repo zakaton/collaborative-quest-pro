@@ -30,7 +30,7 @@ class EntityModel extends Croquet.Model {
     this.components = {};
     this.setComponents({
       componentDifferences: components,
-      userViewId: creatorUserViewId
+      userViewId: creatorUserViewId,
     });
   }
 
@@ -47,7 +47,7 @@ class EntityModel extends Croquet.Model {
       "THREE.Vector3": THREE.Vector3,
       "THREE.Quaternion": THREE.Quaternion,
       "THREE.Euler": THREE.Euler,
-      "THREE.Matrix4": THREE.Matrix4
+      "THREE.Matrix4": THREE.Matrix4,
     };
   }
 
@@ -137,7 +137,7 @@ class EntityModel extends Croquet.Model {
           componentDifferences.position[positionComponentName];
       }
 
-      if (this.physicsBody) {
+      if (this.physicsBody && this.physicsBody.mass == 0) {
         this.physicsBody.position.copy(this.position);
       }
     }
@@ -152,7 +152,7 @@ class EntityModel extends Croquet.Model {
 
       this.quaternion.setFromEuler(this.euler);
 
-      if (this.physicsBody) {
+      if (this.physicsBody && this.physicsBody.mass == 0) {
         this.physicsBody.quaternion.set(this.quaternion);
       }
     }
@@ -181,11 +181,7 @@ class EntityModel extends Croquet.Model {
       }
     }
     if (didPositionRotationOrScaleUpdate) {
-      this.matrix.compose(
-        this.position,
-        this.quaternion,
-        this.scale
-      );
+      this.matrix.compose(this.position, this.quaternion, this.scale);
     }
 
     if ("croquet" in componentDifferences) {
@@ -204,7 +200,7 @@ class EntityModel extends Croquet.Model {
       if ("primitive" in componentDifferences.geometry && wasPhysicsEnabled) {
         // if so, we reset the shape
         if (this.physicsBody) {
-          this.physicsBody.shapes.forEach(shape => {
+          this.physicsBody.shapes.forEach((shape) => {
             this.physicsBody.removeShape(shape);
             shape.destroy();
           });
@@ -222,7 +218,7 @@ class EntityModel extends Croquet.Model {
       if (this.isPhysicsEnabled) {
         this.log("Physics Enabled");
         // if physics is enabled, add position/rotation/scale components if not defined
-        ["position", "rotation", "scale"].forEach(componentName => {
+        ["position", "rotation", "scale"].forEach((componentName) => {
           if (!(componentName in this.components)) {
             let defaultValue;
             switch (componentName) {
@@ -249,6 +245,7 @@ class EntityModel extends Croquet.Model {
     this.log("updated components", this.components);
     const now = this.now();
     this.lastTimeComponentsWereSet = now;
+    this.log("updated", this.lastTimeComponentsWereSet);
     this.lastTimeComponentsWereSetByUser[userViewId] = now;
   }
 
@@ -262,7 +259,7 @@ class EntityModel extends Croquet.Model {
           shape,
           mass: this.mass,
           position: this.position,
-          quaternion: this.quaternion
+          quaternion: this.quaternion,
         });
         physicsBody.name = this.name;
       }
@@ -282,11 +279,8 @@ class EntityModel extends Croquet.Model {
         // http://schteppe.github.io/cannon.js/docs/classes/Box.html
         shape = CANNON.Box.create({
           halfExtents: new CANNON.Vec3(
-            ...this.scale
-              .clone()
-              .multiplyScalar(0.5)
-              .toArray()
-          )
+            ...this.scale.clone().multiplyScalar(0.5).toArray()
+          ),
         });
         break;
       case "sphere":
@@ -299,7 +293,7 @@ class EntityModel extends Croquet.Model {
           radiusTop: this.radius,
           radiusBottom: this.radius,
           height: this.height,
-          numSegments: this.components.geometry.segmentsRadial
+          numSegments: this.components.geometry.segmentsRadial,
         });
         break;
     }
@@ -339,11 +333,7 @@ class EntityModel extends Croquet.Model {
         }
       }
 
-      this.matrix.compose(
-        this.position,
-        this.quaternion,
-        this.scale
-      );
+      this.matrix.compose(this.position, this.quaternion, this.scale);
       this.lastTimePhysicsBodyWasSet = this.now();
     }
   }

@@ -13,16 +13,16 @@ Q.LOGGING = {
 
   UserModel: false,
   UserView: false,
-  
-  HandTrackingControlsModel: true,
-  HandTrackingControlsView: true,
 
-  EntityModel: false,
+  HandTrackingControlsModel: false,
+  HandTrackingControlsView: false,
+
+  EntityModel: true,
   EntityView: false,
 
   PhysicsModel: false,
 
-  DemosView: false
+  DemosView: false,
 };
 
 Q.GRAVITY = -9.82;

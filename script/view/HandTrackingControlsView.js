@@ -8,11 +8,6 @@ class HandTrackingControlsView extends Croquet.View {
     this.lastTimeBonesWereUpdated = 0;
 
     this.eventListeners = [];
-    this.decomposition = {
-      position: new THREE.Vector3(),
-      quaternion: new THREE.Quaternion(),
-      scale: new THREE.Vector3(),
-    };
 
     this.log(
       `Creating HandTrackingControlsView for userViewId "${this.userViewId}"`
@@ -20,6 +15,7 @@ class HandTrackingControlsView extends Croquet.View {
 
     // grabing the <a-scene /> so we can add/remove our user <a-entity />
     this.scene = AFRAME.scenes[0];
+    this.cameraEntity = this.scene.querySelector("a-camera");
 
     // check if these hands represent you or a remote user. If it's you there's no need to create hand entities, and we'll focus on publishing our matrix/joints to our HandTrackingControls Model
     this.log("Checking if these hands represent you or a remote user");
@@ -63,8 +59,12 @@ class HandTrackingControlsView extends Croquet.View {
         "hand-tracking-controls-proxy",
         `modelColor: ${this.color}; hand: ${this.model.side}`
       );
-      this.entity.addEventListener("loaded", (event) => {
+      this.entity.addEventListener("mesh-loaded", (event) => {
         this.component = this.entity.components["hand-tracking-controls-proxy"];
+        for (const boneName in this.model.boneMatrices) {
+          const bone = this.getBone(boneName);
+          bone.matrixAutoUpdate = false;
+        }
       });
       this.scene.appendChild(this.entity);
     }
@@ -152,7 +152,7 @@ class HandTrackingControlsView extends Croquet.View {
     return this.model.lastTimeBonesWereSet;
   }
   get bones() {
-    return this.component.bones;
+    return this.component?.bones;
   }
   getBone(boneName) {
     return this.component.getBone(boneName);
@@ -184,11 +184,8 @@ class HandTrackingControlsView extends Croquet.View {
       for (const boneName in this.model.boneMatrices) {
         const matrix = this.model.boneMatrices[boneName];
         const bone = this.getBone(boneName);
-        const { position, quaternion, scale } = this.decomposition;
-        matrix.decompose(position, quaternion, scale);
-        bone.quaternion.copy(quaternion);
-        bone.position.copy(position);
-        bone.scale.copy(scale);
+        bone.matrix.copy(matrix);
+        bone.matrixWorldNeedsUpdate = true;
       }
     }
   }

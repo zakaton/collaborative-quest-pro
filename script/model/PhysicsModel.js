@@ -22,7 +22,7 @@ class PhysicsModel extends Croquet.Model {
 
     this.was = this.now();
 
-    // this.future(Q.STEP_MS).step();
+    this.future(Q.STEP_MS).step();
 
     this.log("Finished Physics Constructor");
   }

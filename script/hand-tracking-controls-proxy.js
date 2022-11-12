@@ -115,5 +115,6 @@ AFRAME.registerComponent("hand-tracking-controls-proxy", {
     });
     this.el.setObject3D("mesh", mesh);
     this.mesh.visible = false;
+    this.el.emit("mesh-loaded");
   },
 });

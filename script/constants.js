@@ -17,7 +17,7 @@ Q.LOGGING = {
   HandTrackingControlsModel: false,
   HandTrackingControlsView: false,
 
-  EntityModel: true,
+  EntityModel: false,
   EntityView: false,
 
   PhysicsModel: false,

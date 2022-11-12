@@ -7,10 +7,24 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
     distanceThreshold: { type: "number", default: 0.01 },
   },
 
+  decomposeCameraMatrix() {
+    const { quaternion, position, scale } = this.cameraDecomposition;
+    this.cameraEntity.object3D.matrixWorld.decompose(
+      position,
+      quaternion,
+      scale
+    );
+  },
+
   init: function () {
-    window.sceneComponent = this;
+    window.handTrackingControlsControllerComponent = this;
 
     this.cameraEntity = this.el.querySelector("a-camera");
+    this.cameraDecomposition = {
+      quaternion: new THREE.Quaternion(),
+      position: new THREE.Vector3(),
+      scale: new THREE.Vector3(),
+    };
 
     this.entities = [];
     this.targetEntities = new Set();
@@ -31,8 +45,7 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
       this.targetEntities.add(entity);
     });
 
-    const config = { childList: true, subtree: true };
-    const callback = (mutationList, observer) => {
+    const callback = (mutationList) => {
       for (const mutation of mutationList) {
         if (mutation.type === "childList") {
           const { addedNodes, removedNodes } = mutation;
@@ -81,16 +94,17 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         scaleVector: new THREE.Vector3(),
         isRelativeToCamera: false,
         component: this,
-        //camera: this.cameraEntity,
+        camera: this.cameraEntity,
         onPinchMoved(event) {
           const handTrackingComponent =
-            event.target.components["hand-tracking-controls"];
-          const { position } = event.detail;
+            event.target.components["hand-tracking-controls-controller"];
+          let { position } = event.detail;
+          position = handTrackingComponent.offsetPosition(position);
           const isFirstHand = this.hands[0].el == handTrackingComponent.el;
 
           if (isFirstHand) {
             this.quaternion.multiplyQuaternions(
-              this.hands[0].jointAPI.getWrist().getQuaternion(),
+              this.hands[0].getWristQuaternion(),
               this.entityQuaternionRelativeToWrist
             );
 
@@ -152,11 +166,7 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         entityQuaternionRelativeToWrist: entityToGrab.object3D.quaternion
           .clone()
           .premultiply(
-            handTrackingComponent.jointAPI
-              .getWrist()
-              .getQuaternion()
-              .clone()
-              .invert()
+            handTrackingComponent.getWristQuaternion().clone().invert()
           ),
         relativeEntityQuaternion: new THREE.Quaternion(),
 
@@ -197,28 +207,28 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         console.log("LET GO");
         this.grabbedEntities.delete(entityToGrab);
 
+        // this.decomposeCameraMatrix();
+
         grabbedEntityConfig.isRelativeToCamera =
           false && handTrackingComponent.side == "left";
         if (grabbedEntityConfig.isRelativeToCamera) {
           grabbedEntityConfig.initialCameraPosition.copy(
-            this.cameraEntity.object3D.position
+            this.cameraDecomposition.position
           );
           grabbedEntityConfig.initialCameraQuaternion.copy(
-            this.cameraEntity.object3D.quaternion
+            this.cameraDecomposition.quaternion
           );
           grabbedEntityConfig.initialCameraQuaternionInverse
-            .copy(this.cameraEntity.object3D.quaternion)
+            .copy(this.cameraDecomposition.quaternion)
             .invert();
 
           grabbedEntityConfig.relativeCameraPosition.subVectors(
             entityToGrab.object3D.position,
-            this.cameraEntity.object3D.position
+            this.cameraDecomposition.position
           );
           grabbedEntityConfig.relativeCameraQuaternion
             .copy(entityToGrab.object3D.quaternion)
-            .premultiply(
-              this.cameraEntity.object3D.quaternion.clone().invert()
-            );
+            .premultiply(this.cameraDecomposition.quaternion.clone().invert());
 
           this.cameraMountedEntities.set(entityToGrab, grabbedEntityConfig);
         } else {
@@ -252,6 +262,9 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
   tick: function (time, timeDelta) {
     this.entities.forEach((entity) => entity.tick(...arguments));
 
+    if (this.cameraMountedEntities.size > 0 || this.grabbedEntities.size > 0) {
+      // this.decomposeCameraMatrix();
+    }
     this.grabbedEntities.forEach((grabbedEntityConfig, grabbedEntity) => {
       if (grabbedEntityConfig.shouldUpdatePosition) {
         // grabbedEntity.object3D.position.copy(grabbedEntityConfig.position);
@@ -267,6 +280,7 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
         grabbedEntityConfig.rotationVector.setFromEuler(
           grabbedEntityConfig.rotation
         );
+
         grabbedEntityConfig.rotationVector.multiplyScalar(180 / Math.PI);
         //grabbedEntity.setAttribute("rotation", grabbedEntityConfig.rotation);
         // grabbedEntity.setAttribute("rotation", rotationString);
@@ -290,19 +304,19 @@ AFRAME.registerSystem("hand-tracking-controls-controller", {
     this.cameraMountedEntities.forEach((grabbedEntityConfig, grabbedEntity) => {
       if (!this.grabbedEntities.has(grabbedEntity)) {
         grabbedEntityConfig.quaternionOffset.multiplyQuaternions(
-          this.cameraEntity.object3D.quaternion,
+          this.cameraDecomposition.quaternion,
           grabbedEntityConfig.initialCameraQuaternionInverse
         );
         grabbedEntityConfig.positionOffset
           .copy(grabbedEntityConfig.relativeCameraPosition)
           .applyQuaternion(grabbedEntityConfig.quaternionOffset);
         grabbedEntityConfig.position.addVectors(
-          this.cameraEntity.object3D.position,
+          this.cameraDecomposition.position,
           grabbedEntityConfig.positionOffset
         );
 
         grabbedEntityConfig.quaternion.multiplyQuaternions(
-          this.cameraEntity.object3D.quaternion,
+          this.cameraDecomposition.quaternion,
           grabbedEntityConfig.relativeCameraQuaternion
         );
 
@@ -343,6 +357,30 @@ AFRAME.registerComponent("hand-tracking-controls-controller", {
   schema: {},
   dependencies: ["hand-tracking-controls"],
 
+  getOffsetMatrix() {
+    return this.system.cameraEntity.parentEl.object3D.matrixWorld;
+  },
+  offsetPosition(position) {
+    const newPosition = position.clone().applyMatrix4(this.getOffsetMatrix());
+    return newPosition;
+  },
+  offsetQuaternion(quaternion, overwrite) {
+    this._quaternion = this._quaternion || new THREE.Quaternion();
+    this._quaternion.setFromRotationMatrix(this.getOffsetMatrix());
+    if (overwrite) {
+      quaternion.premultiply(this._quaternion);
+      return quaternion;
+    } else {
+      const newQuaternion = quaternion.clone().premultiply(this._quaternion);
+      return newQuaternion;
+    }
+  },
+  getWristQuaternion() {
+    let quaternion = this.jointAPI.getWrist().getQuaternion();
+    quaternion = this.offsetQuaternion(quaternion);
+    return quaternion;
+  },
+
   init: function () {
     this.box = new THREE.Box3();
 
@@ -359,11 +397,9 @@ AFRAME.registerComponent("hand-tracking-controls-controller", {
         return;
       }
 
-      const { position } = event.detail;
+      let { position } = event.detail;
+      position = this.offsetPosition(position);
 
-      // FILL - grab threshold is based on entity type/dimensions
-      // use THREE.Box3, expand by object3D, and check point distance from object
-      // get closest distance from boinding box
       let closestEntity;
       let closestEntityDistance = this.system.data.distanceThreshold;
       // this.box.makeEmpty();

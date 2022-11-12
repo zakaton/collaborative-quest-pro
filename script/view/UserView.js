@@ -11,6 +11,7 @@ class UserView extends Croquet.View {
 
     // grabing the <a-scene /> so we can add/remove our user <a-entity />
     this.scene = AFRAME.scenes[0];
+    this.cameraEntity = this.scene.querySelector("a-camera");
 
     this.eventListeners = [];
 
@@ -67,33 +68,46 @@ class UserView extends Croquet.View {
     }
 
     this.handTrackingControlsViews = {};
+    if (!this.isMyUser) {
+      this.handTrackingControlsEntity = document.createElement("a-entity");
+      this.handTrackingControlsEntity.addEventListener("loaded", (event) => {
+        this.handTrackingControlsEntity.object3D.matrixAutoUpdate = false;
+      });
+    }
     for (const side in this.model.handTrackingControlsModels) {
-      //console.log("fuc", side, this.model.handTrackingControlModels[side])
       this.handTrackingControlsViews[side] = new HandTrackingControlsView(
         this.model.handTrackingControlsModels[side]
       );
+      this.handTrackingControlsEntity?.appendChild(
+        this.handTrackingControlsViews[side].entity
+      );
+    }
+    if (this.handTrackingControlsEntity) {
+      this.scene.appendChild(this.handTrackingControlsEntity);
     }
   }
 
   createPublishMessage() {
     const message = {};
     let shouldPublish = false;
-    
-    const matrix = this.createMatrixMessage()
+
+    const matrix = this.createMatrixMessage();
     if (matrix) {
       message.matrix = matrix;
+      message.offsetMatrix = this.cameraEntity.parentEl.object3D.matrixWorld;
       shouldPublish = true;
     }
-    
+
     for (const side in this.handTrackingControlsViews) {
-      const _message = this.handTrackingControlsViews[side].createPublishMessage();
+      const _message =
+        this.handTrackingControlsViews[side].createPublishMessage();
       if (_message) {
         message.handTrackingControls = message.handTrackingControls || {};
-        message.handTrackingControls[side] = _message
+        message.handTrackingControls[side] = _message;
         shouldPublish = true;
       }
     }
-    
+
     if (shouldPublish) {
       return message;
     }
@@ -200,6 +214,9 @@ class UserView extends Croquet.View {
   get matrix() {
     return this.model.matrix;
   }
+  get offsetMatrix() {
+    return this.model.offsetMatrix;
+  }
   get lastTimeMatrixWasSet() {
     return this.model.lastTimeMatrixWasSet;
   }
@@ -223,6 +240,12 @@ class UserView extends Croquet.View {
         this.entity.object3D.matrix.copy(this.matrix);
         this.entity.object3D.matrixWorldNeedsUpdate = true;
         this.lastTimeMatrixWasUpdated = this.lastTimeMatrixWasSet;
+        this.handTrackingControlsEntity?.object3D.matrix.copy(
+          this.offsetMatrix
+        );
+        if (this.handTrackingControlsEntity) {
+          this.handTrackingControlsEntity.object3D.matrixWorldNeedsUpdate = true;
+        }
       }
     }
     for (const side in this.handTrackingControlsViews) {
@@ -245,6 +268,7 @@ class UserView extends Croquet.View {
     if (!this.isMyUser && this.entity) {
       this.log(`removing user entity from our scene`);
       this.entity.remove();
+      this.handTrackingControlsEntity?.remove();
     }
   }
 }

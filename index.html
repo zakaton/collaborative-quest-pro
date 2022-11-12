@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Hello, WebVR!</title>
+    <title>Collaborative WebXR</title>
     <meta charset="utf-8" />
 
     <!-- https://croquet.studio/sdk/docs/index.html -->
@@ -39,7 +39,26 @@
   </head>
 
   <body>
-    <a-scene croquet>
+    <a-scene
+      croquet
+      shadow="type: pcfsoft"
+      renderer=" colorManagement:true; toneMapping:ACESFilmic;"
+    >
+      <a-assets>
+        <a-asset-item
+          id="apartment"
+          src="https://cdn.glitch.global/076b8a9d-edd5-4b03-aad8-16cddea03d45/apartment.glb?v=1668201345555"
+        ></a-asset-item>
+        <a-asset-item
+          id="chair"
+          src="https://cdn.glitch.global/076b8a9d-edd5-4b03-aad8-16cddea03d45/office_chair.glb?v=1668285917375"
+        ></a-asset-item>
+        <img
+          id="logo"
+          src="https://cdn.glitch.global/076b8a9d-edd5-4b03-aad8-16cddea03d45/logo%20(1).png?v=1668286339018"
+        />
+      </a-assets>
+
       <template id="userTemplate">
         <a-entity class="user">
           <a-sphere
@@ -98,67 +117,123 @@
             ></a-entity></a-entity></a-entity
       ></a-entity>
 
-      <a-entity
-        croquet="name: light"
-        light="color: #FFF; intensity: 0.6; castShadow: true"
-        position="-0.5 1 1"
-      ></a-entity>
-      <a-entity
-        croquet="name: ambientLight"
-        light="color: #BBB; type: ambient"
-      ></a-entity>
-
       <a-text
         croquet="name: text"
-        value="Croquet"
-        color="black"
+        value="Ukaton"
+        color="white"
         align="center"
-        scale="20 20 20"
-        position="0 6 -6"
+        scale="1 1 1"
+        position="0 1 -2"
+        rotation="0 0 0"
+        data-grabbable
       ></a-text>
+
+      <a-entity
+        light="color: #FFF; intensity: 0.6; castShadow: true; type: point;"
+        position="-0.567 1.414 -0.085"
+      ></a-entity>
+      <a-entity
+        position="1.679 2.989 -5.157"
+        light="color: #BBB; type: directional; castShadow: true;"
+      ></a-entity>
+      <a-entity light="color: #BBB; type: ambient; intensity: 0.7;"></a-entity>
 
       <a-box
         croquet="name: test; physics: true; mass: 1;"
         color="purple"
         position="0 1 -0.5"
-        scale="0.5 0.5 0.5"
+        scale="0.1 0.1 0.1"
         rotation="0 0 0"
         shadow
         data-grabbable
       ></a-box>
 
-      <a-cylinder
-        croquet="name: cylinder; physics: true; mass: 1;"
-        color="blue"
-        position="2 5 -3"
-        rotation="30 30 0"
-        height="1"
-        radius="0.5"
-        shadow
-      ></a-cylinder>
-      <a-sphere
-        croquet="name: sphere; physics: true; mass: 1;"
-        color="red"
-        position="0 2 -3"
-        radius="0.5"
-        shadow
-      ></a-sphere>
-      <a-box
-        croquet="name: box; physics: true; mass: 1;"
-        color="yellow"
-        position="-2 3 -3"
-        rotation="40 30 10"
-        shadow
-      ></a-box>
       <a-plane
         croquet="name: plane; physics: true; mass: 0;"
         color="limegreen"
         scale="100 100 100"
         rotation="-90 0 0"
         shadow="receive: true; cast: false;"
-        hide-on-enter-ar
+        material="shader:shadow"
+        shadow="cast: false;"
+        position="0 0.015 0"
       ></a-plane>
-      <a-sky visible="false" croquet="name: sky;" color="powderblue"></a-sky>
+
+      <a-box
+        croquet="name: couch1; physics: true; mass: 0;"
+        position="2.240 0.308 -0.220"
+        scale="2.357 0.453 0.877"
+        rotation="0 0 0"
+        visible="false"
+      ></a-box>
+      <a-box
+        croquet="name: couch2; physics: true; mass: 0;"
+        position="2.851 0.249 -1.427"
+        scale="1.030 0.514 2.423"
+        rotation="0 0 0"
+        visible="false"
+      ></a-box>
+
+      <a-box
+        croquet="name: desk; physics: true; mass: 0;"
+        position="2.346 0.518 2.935"
+        scale="1.228 1.079 0.809"
+        rotation="0 0 0"
+        visible="false"
+      ></a-box>
+
+      <a-cylinder
+        croquet="name: table; physics: true; mass: 0;"
+        position="-2.227 0.490 -2.094"
+        scale="0.567 0.710 0.567"
+        rotation="0 0 0"
+        visible="false"
+      ></a-cylinder>
+
+      <a-box
+        croquet="name: kitchenCounter1; physics: true; mass: 0;"
+        position="-3.309 0.424 0.763"
+        scale="1 1 2.643"
+        rotation="0 0 0"
+        visible="false"
+      ></a-box>
+
+      <a-box
+        croquet="name: kitchenCounter2; physics: true; mass: 0;"
+        position="-1.311 0.394 0.763"
+        scale="0.770 1.013 2.643"
+        rotation="0 0 0"
+        visible="false"
+      ></a-box>
+
+      <a-entity
+        data-toggle-visibility
+        gltf-model="#apartment"
+        position="0 1.53 0"
+        scale="1 1 1"
+        shadow="receive: true; cast: false;"
+        hide-on-enter-ar
+      ></a-entity>
+
+      <a-image
+        src="#logo"
+        side="front"
+        croquet="name: poster"
+        position="-0.883 1.576 1.328"
+        scale="1 1 1"
+        rotation="0 90.000 0"
+        data-grabbable
+      ></a-image>
+
+      <a-entity
+        croquet="name: chair;"
+        gltf-model="#chair"
+        position="0 0.540 0"
+        scale="1 1 1"
+        rotation="0 0 0"
+        shadow
+        data-grabbable
+      ></a-entity>
     </a-scene>
   </body>
 

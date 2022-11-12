@@ -20,6 +20,7 @@ class UserModel extends Croquet.Model {
     this.subscribe(this.userViewId, "set-color", this.setColor);
 
     this.matrix = new THREE.Matrix4();
+    this.offsetMatrix = new THREE.Matrix4();
     this.position = new THREE.Vector3();
     this.quaternion = new THREE.Quaternion();
     this.scale = new THREE.Vector3();
@@ -72,16 +73,17 @@ class UserModel extends Croquet.Model {
     this.publish(this.userViewId, "update-color");
   }
 
-  setMatrix(matrix) {
+  setMatrix(matrix, offsetMatrix) {
     this.matrix.copy(matrix);
     this.matrix.decompose(this.position, this.quaternion, this.scale);
+    this.offsetMatrix.copy(offsetMatrix);
     this.lastTimeMatrixWasSet = this.now();
     this.updatePhysicsBody();
   }
 
-  setData({ matrix, handTrackingControls }) {
+  setData({ matrix, handTrackingControls, offsetMatrix }) {
     if (matrix) {
-      this.setMatrix(matrix);
+      this.setMatrix(matrix, offsetMatrix);
     }
     if (handTrackingControls) {
       for (const side in handTrackingControls) {

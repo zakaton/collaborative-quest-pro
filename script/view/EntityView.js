@@ -264,7 +264,7 @@ class EntityView extends Croquet.View {
           // check if there are any differences between the entity and model
           if (Object.keys(componentDifference).length) {
             // we also comment this out because it's annoying
-            if (false) {
+            if (false && componentName !== "rotation") {
               this.log(
                 `About to set "${componentName}" component with "${attributeValue}"`
               );
@@ -341,7 +341,7 @@ class EntityView extends Croquet.View {
               this.entity.components[componentName].isPositionRotationScale ||
               componentName === "croquet"
             ) {
-              this.entity.components[componentName].flushToDOM();
+              //this.entity.components[componentName].flushToDOM();
             }
 
             // undefined values, e.g. {x: undefined} don't get sent to the model via this.publish (it'll just receive {}) so we'll replace them with null

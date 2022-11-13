@@ -59,6 +59,15 @@
         />
       </a-assets>
 
+      <a-entity
+        data-toggle-visibility
+        gltf-model="#apartment"
+        position="0 1.53 0"
+        scale="1 1 1"
+        shadow="receive: true; cast: false;"
+        hide-on-enter-ar
+      ></a-entity>
+
       <template id="userTemplate">
         <a-entity class="user">
           <a-sphere
@@ -205,15 +214,6 @@
         rotation="0 0 0"
         visible="false"
       ></a-box>
-
-      <a-entity
-        data-toggle-visibility
-        gltf-model="#apartment"
-        position="0 1.53 0"
-        scale="1 1 1"
-        shadow="receive: true; cast: false;"
-        hide-on-enter-ar
-      ></a-entity>
 
       <a-image
         src="#logo"

@@ -38,7 +38,19 @@ AFRAME.registerComponent("camera-controls", {
   toggleVisibility: function () {
     this.showEntities = !this.showEntities;
     this.data.toggleVisibility.forEach((entity) => {
-      entity.setAttribute("visible", this.showEntities);
+      if (entity.dataset.colorWrite) {
+        const gltfModel = entity.components["gltf-model"]?.model;
+        if (gltfModel) {
+          gltfModel.traverseVisible((x) => {
+            const { material } = x;
+            if (material) {
+              material.colorWrite = this.showEntities;
+            }
+          });
+        }
+      } else {
+        entity.setAttribute("visible", this.showEntities);
+      }
     });
   },
 });

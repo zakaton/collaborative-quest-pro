@@ -35,6 +35,14 @@ class UserView extends Croquet.View {
         1000 / 24,
         this
       );
+      this.head = document.querySelector("#camera .user .head");
+      this.head.setAttribute("color", this.color);
+      this.addEventListener(
+        this.head,
+        "componentchanged",
+        this.onHeadComponentChanged
+      );
+      this.subscribe(this.userViewId, "update-color", this.updateColor);
     } else {
       this.log(
         "This UserView represents a remote user. Creating a User Entity"

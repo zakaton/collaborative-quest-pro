@@ -1,0 +1,5 @@
+rig view
+  clicking "connect" chooses whom controls the avatar
+  hides your head
+  starts publishing rig data
+  set rig position and articulation from remove users

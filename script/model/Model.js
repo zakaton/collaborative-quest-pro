@@ -2,6 +2,7 @@
 import UserModel from "./UserModel.js";
 import EntityModel from "./EntityModel.js";
 import PhysicsModel from "./PhysicsModel.js";
+import ReadyPlayerMeModel from "./ReadyPlayerMeModel.js";
 
 class Model extends Croquet.Model {
   init(options) {
@@ -23,6 +24,7 @@ class Model extends Croquet.Model {
 
     this.subscribe(this.sessionId, "broadcast", this.broadcast);
 
+    this.readyPlayerMeModel = ReadyPlayerMeModel.create();
     this.log("Finished setting up Model");
   }
 
@@ -48,7 +50,7 @@ class Model extends Croquet.Model {
   }
   getUserModelByUserViewId(userViewId) {
     return this.userModels.find(
-      userModel => userModel.userViewId === userViewId
+      (userModel) => userModel.userViewId === userViewId
     );
   }
   onViewExit(userViewId) {
@@ -75,12 +77,12 @@ class Model extends Croquet.Model {
   // ENTITIES
   getEntityModelByModelId(entityModelId) {
     return this.entityModels.find(
-      entityModel => entityModel.id === entityModelId
+      (entityModel) => entityModel.id === entityModelId
     );
   }
   getEntityModelByName(entityName) {
     return this.entityModels.find(
-      entityModel => entityModel.name === entityName
+      (entityModel) => entityModel.name === entityName
     );
   }
   createEntityModel({
@@ -88,7 +90,7 @@ class Model extends Croquet.Model {
     name,
     parentName,
     tagName,
-    components
+    components,
   }) {
     this.log(`Received ("entities", "create-model") event in Model`);
 
@@ -99,7 +101,7 @@ class Model extends Croquet.Model {
         name,
         tagName,
         parentName,
-        components
+        components,
       });
       this.log(
         `Adding entityModel with name ${name} and model id "${entityModel.id}" to model.entityModels`

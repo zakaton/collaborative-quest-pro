@@ -11,6 +11,14 @@
 
     <script src="./script/aframe.min.js"></script>
 
+    <script src="./script/ready-player-me-pro.js"></script>
+    <!-- https://github.com/alfa256/aframe-mirror-component -->
+    <script src="./script/mirror-component.js"></script>
+
+    <script src="./script/ukaton/BaseMission.js"></script>
+    <script src="./script/ukaton/WebSocketMissionDevice.js"></script>
+    <script src="./script/ukaton/UDPMissionDevices.js"></script>
+
     <!-- https://github.com/mrturck/aframe-joystick -->
     <script src="https://cdn.rawgit.com/mrturck/aframe-joystick/master/joystick.min.js"></script>
 
@@ -20,6 +28,9 @@
     <script src="./script/hand-tracking-controls-proxy.js"></script>
     <script src="./script/hand-tracking-controls-controller.js"></script>
     <script src="./script/camera-controls-component.js"></script>
+
+    <!-- https://github.com/bryik/aframe-layers-component -->
+    <script src="https://unpkg.com/aframe-layers-component@1.0.0/dist/aframe-layers-component.min.js"></script>
 
     <!-- https://github.com/schteppe/cannon.js -->
     <!-- 
@@ -38,15 +49,43 @@
     <script src="./script/index.js" type="module"></script>
   </head>
 
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #overlay {
+      position: absolute;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    #overlay .clickable {
+      pointer-events: all;
+    }
+    #overlay .hidden {
+      display: none;
+    }
+  </style>
+
   <body>
     <a-scene
       croquet
       shadow="type: pcfsoft"
       renderer=" colorManagement:true; toneMapping:ACESFilmic;"
     >
+      <div id="overlay">
+        <button class="clickable" onclick="connectUDP()">
+          connect via UDP
+        </button>
+        <button class="clickable" onclick="calibrate()">Calibrate</button>
+      </div>
+
       <a-assets>
         <a-asset-item
-          id="apartment"
+          id="apartmentModel"
           src="https://cdn.glitch.global/076b8a9d-edd5-4b03-aad8-16cddea03d45/apartment.glb?v=1668201345555"
         ></a-asset-item>
         <a-asset-item
@@ -61,11 +100,13 @@
 
       <a-entity
         data-toggle-visibility
-        gltf-model="#apartment"
-        position="0 1.53 0"
+        data-color-write="true"
+        gltf-model="#apartmentModel"
+        position="-2.185 1.53 -2.77"
         scale="1 1 1"
         shadow="receive: true; cast: false;"
-        hide-on-enter-ar
+        rotation="0 180 0"
+        id="apartment"
       ></a-entity>
 
       <template id="userTemplate">
@@ -105,7 +146,44 @@
       <a-entity id="cameraPosition" position="0 0 0"
         ><a-entity id="cameraRotation" rotation="0 0 0"
           ><a-entity id="cameraScale" scale="1 1 1"
-            ><a-camera position="0 1.6 0" id="camera"></a-camera>
+            ><a-camera position="0 1.6 0" id="camera"
+              ><a-entity class="user">
+                <a-sphere
+                  class="right eye"
+                  color="white"
+                  scale="0.018 0.018 0.018"
+                  position="0.040 0.040 -0.09"
+                  layers="5"
+                >
+                  <a-sphere
+                    color="black"
+                    scale="0.5 0.5 0.5"
+                    position="0 0 -0.8"
+                    layers="5"
+                  ></a-sphere>
+                </a-sphere>
+                <a-sphere
+                  class="left eye"
+                  color="white"
+                  scale="0.018 0.018 0.018"
+                  position="-0.040 0.040 -0.09"
+                  layers="5"
+                >
+                  <a-sphere
+                    color="black"
+                    scale="0.5 0.5 0.5"
+                    position="0 0 -0.8"
+                    layers="5"
+                  ></a-sphere>
+                </a-sphere>
+                <a-box
+                  class="head"
+                  scale="0.18 0.18 0.18"
+                  shadow="cast: true; receive: false;"
+                  layers="5"
+                  color="red"
+                ></a-box></a-entity
+            ></a-camera>
             <a-entity
               id="leftHandTrackingControls"
               hand-tracking-controls="hand: left;"
@@ -126,29 +204,46 @@
             ></a-entity></a-entity></a-entity
       ></a-entity>
 
+      <a-entity
+        id="rig"
+        position="0 0 -1"
+        gltf-model="https://cdn.glitch.global/6c283599-191e-4c4a-b236-e1e1f0d90e7a/avatar.glb?v=1646356912673"
+        ready-player-me="thirdPerson: true; leftHandTrackingControls: #leftHandTrackingControls; rightHandTrackingControls: #rightHandTrackingControls; leftHandControls: #leftHandControls; rightHandControls: #rightHandControls; camera: #camera; mirrorMode: false; udp: 192.168.4.22; layer: 5;"
+        shadow
+      ></a-entity>
+
+      <a-plane
+        visible="true"
+        mirror="repeat: true; resolution: 512; interval: 100; layer: 5; yOffset: 0.3;"
+        position="-1.350 1.140 -4.15"
+        rotation="0 -90 0"
+        height="2.3"
+        width="1.2"
+      ></a-plane>
+
       <a-text
         croquet="name: text"
         value="Ukaton"
         color="white"
         align="center"
         scale="1 1 1"
-        position="0 1 -2"
-        rotation="0 0 0"
+        position="-1.966 1.246 -0.052"
+        rotation="0 -133.083 0"
         data-grabbable
       ></a-text>
 
       <a-entity
         light="color: #FFF; intensity: 0.6; castShadow: true; type: point;"
-        position="-0.567 1.414 -0.085"
+        position="-1.634 1.414 -2.725"
       ></a-entity>
       <a-entity
-        position="1.679 2.989 -5.157"
+        position="-3.932 2.989 3.904"
         light="color: #BBB; type: directional; castShadow: true;"
       ></a-entity>
       <a-entity light="color: #BBB; type: ambient; intensity: 0.7;"></a-entity>
 
       <a-box
-        croquet="name: test; physics: true; mass: 1;"
+        croquet="name: test; physics: false; mass: 1;"
         color="purple"
         position="0 1 -0.5"
         scale="0.1 0.1 0.1"
@@ -170,22 +265,22 @@
 
       <a-box
         croquet="name: couch1; physics: true; mass: 0;"
-        position="2.240 0.308 -0.220"
+        position="-5.019 0.308 -1.350"
         scale="2.357 0.453 0.877"
-        rotation="0 0 0"
+        rotation="0 91.074 0"
         visible="false"
       ></a-box>
       <a-box
         croquet="name: couch2; physics: true; mass: 0;"
-        position="2.851 0.249 -1.427"
+        position="-4.490 0.249 -2.595"
         scale="1.030 0.514 2.423"
-        rotation="0 0 0"
+        rotation="0 90.165 0"
         visible="false"
       ></a-box>
 
       <a-box
         croquet="name: desk; physics: true; mass: 0;"
-        position="2.346 0.518 2.935"
+        position="-4.516 0.518 -5.650"
         scale="1.228 1.079 0.809"
         rotation="0 0 0"
         visible="false"
@@ -193,7 +288,7 @@
 
       <a-cylinder
         croquet="name: table; physics: true; mass: 0;"
-        position="-2.227 0.490 -2.094"
+        position="0.014 0.606 -0.591"
         scale="0.567 0.710 0.567"
         rotation="0 0 0"
         visible="false"
@@ -201,7 +296,7 @@
 
       <a-box
         croquet="name: kitchenCounter1; physics: true; mass: 0;"
-        position="-3.309 0.424 0.763"
+        position="1.160 0.424 -3.535"
         scale="1 1 2.643"
         rotation="0 0 0"
         visible="false"
@@ -209,7 +304,7 @@
 
       <a-box
         croquet="name: kitchenCounter2; physics: true; mass: 0;"
-        position="-1.311 0.394 0.763"
+        position="-0.887 0.394 -3.490"
         scale="0.770 1.013 2.643"
         rotation="0 0 0"
         visible="false"
@@ -219,7 +314,7 @@
         src="#logo"
         side="front"
         croquet="name: poster"
-        position="-0.883 1.576 1.328"
+        position="-5.542 1.576 -4.128"
         scale="1 1 1"
         rotation="0 90.000 0"
         data-grabbable
@@ -228,9 +323,9 @@
       <a-entity
         croquet="name: chair;"
         gltf-model="#chair"
-        position="0 0.540 0"
+        position="-3.525 0.540 -0.883"
         scale="1 1 1"
-        rotation="0 0 0"
+        rotation="0 90 0"
         shadow
         data-grabbable
       ></a-entity>
@@ -239,4 +334,13 @@
 
   <script src="./script/joystick.js"></script>
   <script src="./script/randomizeLocation.js"></script>
+  <script>
+    const rig = document.getElementById("rig");
+    function connectUDP() {
+      rig.emit("connectudp");
+    }
+    function calibrate() {
+      rig.emit("calibrate", { delay: 0000 });
+    }
+  </script>
 </html>

@@ -23,6 +23,9 @@ Q.LOGGING = {
   PhysicsModel: false,
 
   DemosView: false,
+
+  ReadyPlayerMeView: true,
+  ReadyPlayerMeModel: true,
 };
 
 Q.GRAVITY = -9.82;

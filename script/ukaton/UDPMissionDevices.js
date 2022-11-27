@@ -99,7 +99,7 @@ class UDPMissionDevices extends THREE.EventDispatcher {
   }
   async connect(ipAddress) {
     this._ipAddress = ipAddress;
-    const gateway = `ws://${ipAddress}:8080`;
+    const gateway = `wss://${ipAddress}:8080`;
     this._gateway = gateway;
     this.log("attempting to connect...");
     if (this.isConnected) {

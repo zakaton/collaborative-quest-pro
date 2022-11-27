@@ -81,6 +81,9 @@
           connect via UDP
         </button>
         <button class="clickable" onclick="calibrate()">Calibrate</button>
+        <button class="clickable" onclick="enableSensors()">
+          Enable Sensors
+        </button>
       </div>
 
       <a-assets>
@@ -195,10 +198,12 @@
               hand-tracking-extras
             ></a-entity>
             <a-entity
+              id="leftHandControls"
               oculus-touch-controls="hand: left; model: false;"
               camera-controls="hand: left;"
             ></a-entity>
             <a-entity
+              id="rightHandControls"
               oculus-touch-controls="hand: right; model: false;"
               camera-controls="hand: right;"
             ></a-entity></a-entity></a-entity
@@ -213,8 +218,8 @@
       ></a-entity>
 
       <a-plane
-        visible="true"
-        mirror="repeat: true; resolution: 512; interval: 100; layer: 5; yOffset: 0.3;"
+        visible="!true"
+        _mirror="repeat: true; resolution: 512; interval: 100; layer: 5; yOffset: 0.3;"
         position="-1.350 1.140 -4.15"
         rotation="0 -90 0"
         height="2.3"
@@ -311,7 +316,8 @@
       ></a-box>
 
       <a-image
-        src="#logo"
+        _src="#logo"
+        src="https://cdn.glitch.global/076b8a9d-edd5-4b03-aad8-16cddea03d45/logo%20(1).png?v=1668286339018"
         side="front"
         croquet="name: poster"
         position="-5.542 1.576 -4.128"
@@ -338,9 +344,13 @@
     const rig = document.getElementById("rig");
     function connectUDP() {
       rig.emit("connectudp");
+      rig.setAttribute("ready-player-me", "thirdPerson", false);
     }
     function calibrate() {
       rig.emit("calibrate", { delay: 0000 });
+    }
+    function enableSensors() {
+      rig.emit("enablesensors");
     }
   </script>
 </html>

@@ -52,6 +52,7 @@ class UserView extends Croquet.View {
         .getElementById("userTemplate")
         .content.cloneNode(true)
         .querySelector(".user");
+      this.entity.dataset.userViewId = this.userViewId;
       this.head = this.entity.querySelector(".head");
       this.head.setAttribute("color", this.color);
       this.subscribe(this.userViewId, "update-color", this.updateColor);
@@ -235,6 +236,9 @@ class UserView extends Croquet.View {
   }
 
   update() {
+    if (this.entity?.dataset?.disable) {
+      return;
+    }
     if (this.isMyUser) {
       //this.publishCameraMatrix();
       this.publishData();

@@ -414,6 +414,7 @@ class View extends Croquet.View {
   update() {
     this.userViews.forEach((userView) => userView.update());
     this.entityViews.forEach((entityView) => entityView.update());
+    this.readyPlayerMeView?.update();
   }
 
   // helper function for broadcasting

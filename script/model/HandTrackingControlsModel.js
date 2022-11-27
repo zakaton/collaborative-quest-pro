@@ -1,14 +1,5 @@
 /* global Croquet, THREE, CANNON, Q */
 
-/*
-TODO
-visibility
-position
-quaternions
-*/
-
-import * as CANNON from "../cannon/CANNON.js";
-
 class HandTrackingControlsModel extends Croquet.Model {
   init({ userViewId, color, side }) {
     super.init();
@@ -32,11 +23,7 @@ class HandTrackingControlsModel extends Croquet.Model {
       this.boneMatrices[boneName] = new THREE.Matrix4();
     });
 
-    this.subscribe(
-      this.publishPrefix,
-      "set-bones",
-      this.setBones
-    );
+    this.subscribe(this.publishPrefix, "set-bones", this.setBones);
 
     this.lastTimeBonesWereSet = 0;
   }
@@ -95,7 +82,7 @@ class HandTrackingControlsModel extends Croquet.Model {
     return {
       "THREE.Vector3": THREE.Vector3,
       "THREE.Quaternion": THREE.Quaternion,
-      "THREE.Matrix4": THREE.Matrix4
+      "THREE.Matrix4": THREE.Matrix4,
     };
   }
 
@@ -110,10 +97,10 @@ class HandTrackingControlsModel extends Croquet.Model {
 
     if (boneMatrices) {
       for (const boneName in boneMatrices) {
-        this.boneMatrices[boneName].copy(boneMatrices[boneName])
+        this.boneMatrices[boneName].copy(boneMatrices[boneName]);
       }
     }
-    
+
     this.lastTimeBonesWereSet = this.now();
   }
 

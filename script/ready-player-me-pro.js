@@ -1899,7 +1899,7 @@ AFRAME.registerComponent("ready-player-me", {
     this.allBones = {};
     this.el.addEventListener("model-loaded", (event) => {
       this.model = this.el.components["gltf-model"].model;
-      this.el.components["gltf-model"].model.traverse((object) => {
+      this.model.traverse((object) => {
         if (!this.data.thirdPerson && this.data.layer >= 0) {
           object.layers.set(this.data.layer);
         }
@@ -1962,6 +1962,13 @@ AFRAME.registerComponent("ready-player-me", {
 
     this.system.addEntity(this);
   },
+  updateThirdPerson: function () {
+    this.model?.traverse((object) => {
+      if (!this.data.thirdPerson && this.data.layer >= 0) {
+        object.layers.set(this.data.layer);
+      }
+    });
+  },
   connect: async function () {
     if (false) {
       this.data.gateway.reduce(async (promise, gateway) => {
@@ -2018,6 +2025,14 @@ AFRAME.registerComponent("ready-player-me", {
         }
       });
     }
+
+    this.udpMissionDevices.devices.forEach((device) => {
+      device.setSensorDataConfigurations(
+        device.__sensorDataConfigurations,
+        false
+      );
+    });
+    this.udpMissionDevices.send();
   },
   _setupDevice: async function (device) {
     const { anchorConfiguration } = this;
@@ -2695,6 +2710,9 @@ AFRAME.registerComponent("ready-player-me", {
 
     if (diffKeys.includes("manualArticulation")) {
       this.updateEntityAutoUpdate();
+    }
+    if (diffKeys.includes("thirdPerson")) {
+      this.updateThirdPerson();
     }
   },
   updateEntityAutoUpdate() {

@@ -12,7 +12,7 @@ AFRAME.registerSystem("croquet", {
       (event) => {
         const { Model, View } = event.detail;
         // https://croquet.studio/sdk/docs/Session.html#.join
-        return;
+        //return;
         Croquet.Session.join({
           appId: "me.glitch.collaborative_quest_pro", // change the appId to your own custom string when remixing
           name: Croquet.App.autoSession(),

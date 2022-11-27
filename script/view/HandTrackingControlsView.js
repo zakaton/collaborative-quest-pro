@@ -55,6 +55,7 @@ class HandTrackingControlsView extends Croquet.View {
       // creating hands
       this.entity = document.createElement("a-entity");
       //this.entity.setAttribute("visible", this.isVisible);
+      this.entity.dataset.userViewId = this.userViewId;
       this.entity.setAttribute(
         "hand-tracking-controls-proxy",
         `modelColor: ${this.color}; hand: ${this.model.side}`
@@ -197,6 +198,9 @@ class HandTrackingControlsView extends Croquet.View {
   }
 
   update() {
+    if (this.entity.dataset.disable) {
+      return;
+    }
     if (this.isMyHand) {
       if (this.hasMesh) {
         //this.publishBones();
